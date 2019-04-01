@@ -454,30 +454,30 @@ class MAVLink_beacon_status_message(MAVLink_message):
         '''
         id = MAVLINK_MSG_ID_BEACON_STATUS
         name = 'BEACON_STATUS'
-        fieldnames = ['type', 'beacon_sensors_present', 'beacon_sensors_enabled', 'beacon_sensors_health', 'beacon_node_present', 'beacon_node_enabled', 'beacon_node_health']
-        ordered_fieldnames = ['beacon_sensors_present', 'beacon_sensors_enabled', 'beacon_sensors_health', 'beacon_node_present', 'beacon_node_enabled', 'beacon_node_health', 'type']
-        fieldtypes = ['uint8_t', 'uint16_t', 'uint16_t', 'uint16_t', 'uint16_t', 'uint16_t', 'uint16_t']
-        format = '<HHHHHHB'
-        native_format = bytearray('<HHHHHHB', 'ascii')
-        orders = [6, 0, 1, 2, 3, 4, 5]
+        fieldnames = ['type', 'beacon_sensors_present', 'beacon_sensors_enabled', 'beacon_sensors_status', 'beacon_node_present', 'beacon_node_enabled', 'beacon_node_status']
+        ordered_fieldnames = ['beacon_sensors_status', 'beacon_node_status', 'beacon_sensors_present', 'beacon_sensors_enabled', 'beacon_node_present', 'beacon_node_enabled', 'type']
+        fieldtypes = ['uint8_t', 'uint16_t', 'uint16_t', 'uint32_t', 'uint16_t', 'uint16_t', 'uint32_t']
+        format = '<IIHHHHB'
+        native_format = bytearray('<IIHHHHB', 'ascii')
+        orders = [6, 2, 3, 0, 4, 5, 1]
         lengths = [1, 1, 1, 1, 1, 1, 1]
         array_lengths = [0, 0, 0, 0, 0, 0, 0]
-        crc_extra = 112
-        unpacker = struct.Struct('<HHHHHHB')
+        crc_extra = 220
+        unpacker = struct.Struct('<IIHHHHB')
 
-        def __init__(self, type, beacon_sensors_present, beacon_sensors_enabled, beacon_sensors_health, beacon_node_present, beacon_node_enabled, beacon_node_health):
+        def __init__(self, type, beacon_sensors_present, beacon_sensors_enabled, beacon_sensors_status, beacon_node_present, beacon_node_enabled, beacon_node_status):
                 MAVLink_message.__init__(self, MAVLink_beacon_status_message.id, MAVLink_beacon_status_message.name)
                 self._fieldnames = MAVLink_beacon_status_message.fieldnames
                 self.type = type
                 self.beacon_sensors_present = beacon_sensors_present
                 self.beacon_sensors_enabled = beacon_sensors_enabled
-                self.beacon_sensors_health = beacon_sensors_health
+                self.beacon_sensors_status = beacon_sensors_status
                 self.beacon_node_present = beacon_node_present
                 self.beacon_node_enabled = beacon_node_enabled
-                self.beacon_node_health = beacon_node_health
+                self.beacon_node_status = beacon_node_status
 
         def pack(self, mav, force_mavlink1=False):
-                return MAVLink_message.pack(self, mav, 112, struct.pack('<HHHHHHB', self.beacon_sensors_present, self.beacon_sensors_enabled, self.beacon_sensors_health, self.beacon_node_present, self.beacon_node_enabled, self.beacon_node_health, self.type), force_mavlink1=force_mavlink1)
+                return MAVLink_message.pack(self, mav, 220, struct.pack('<IIHHHHB', self.beacon_sensors_status, self.beacon_node_status, self.beacon_sensors_present, self.beacon_sensors_enabled, self.beacon_node_present, self.beacon_node_enabled, self.type), force_mavlink1=force_mavlink1)
 
 
 mavlink_map = {
@@ -979,33 +979,33 @@ class MAVLink(object):
                 '''
                 return self.send(self.special_point_info_request_encode(point_type), force_mavlink1=force_mavlink1)
 
-        def beacon_status_encode(self, type, beacon_sensors_present, beacon_sensors_enabled, beacon_sensors_health, beacon_node_present, beacon_node_enabled, beacon_node_health):
+        def beacon_status_encode(self, type, beacon_sensors_present, beacon_sensors_enabled, beacon_sensors_status, beacon_node_present, beacon_node_enabled, beacon_node_status):
                 '''
                 Request special_point_info.
 
                 type                      : point type, 0: nomal; 1-255 reserve for special type of vehicle or payload (type:uint8_t)
                 beacon_sensors_present        : itmask showing which sensors are present. Value of 0: not present. Value of 1: present (type:uint16_t)
                 beacon_sensors_enabled        : Bitmask showing which sensors are enabled:  Value of 0: not enabled. Value of 1: enabled. (type:uint16_t)
-                beacon_sensors_health        : Bitmask showing which sensors are operational or have an error:  Value of 0: not health. Value of 1: enabled. (type:uint16_t)
+                beacon_sensors_status        : Bitmask showing which sensors' status, double bits indicate one sensor status. (type:uint32_t)
                 beacon_node_present        : itmask showing which node are present. Value of 0: not present. Value of 1: present (type:uint16_t)
                 beacon_node_enabled        : Bitmask showing which node are enabled:  Value of 0: not enabled. Value of 1: enabled. (type:uint16_t)
-                beacon_node_health        : Bitmask showing which node are operational or have an error:  Value of 0: not health. Value of 1: enabled. (type:uint16_t)
+                beacon_node_status        : Bitmask showing which nodes' status, double bits indicate one node status (type:uint32_t)
 
                 '''
-                return MAVLink_beacon_status_message(type, beacon_sensors_present, beacon_sensors_enabled, beacon_sensors_health, beacon_node_present, beacon_node_enabled, beacon_node_health)
+                return MAVLink_beacon_status_message(type, beacon_sensors_present, beacon_sensors_enabled, beacon_sensors_status, beacon_node_present, beacon_node_enabled, beacon_node_status)
 
-        def beacon_status_send(self, type, beacon_sensors_present, beacon_sensors_enabled, beacon_sensors_health, beacon_node_present, beacon_node_enabled, beacon_node_health, force_mavlink1=False):
+        def beacon_status_send(self, type, beacon_sensors_present, beacon_sensors_enabled, beacon_sensors_status, beacon_node_present, beacon_node_enabled, beacon_node_status, force_mavlink1=False):
                 '''
                 Request special_point_info.
 
                 type                      : point type, 0: nomal; 1-255 reserve for special type of vehicle or payload (type:uint8_t)
                 beacon_sensors_present        : itmask showing which sensors are present. Value of 0: not present. Value of 1: present (type:uint16_t)
                 beacon_sensors_enabled        : Bitmask showing which sensors are enabled:  Value of 0: not enabled. Value of 1: enabled. (type:uint16_t)
-                beacon_sensors_health        : Bitmask showing which sensors are operational or have an error:  Value of 0: not health. Value of 1: enabled. (type:uint16_t)
+                beacon_sensors_status        : Bitmask showing which sensors' status, double bits indicate one sensor status. (type:uint32_t)
                 beacon_node_present        : itmask showing which node are present. Value of 0: not present. Value of 1: present (type:uint16_t)
                 beacon_node_enabled        : Bitmask showing which node are enabled:  Value of 0: not enabled. Value of 1: enabled. (type:uint16_t)
-                beacon_node_health        : Bitmask showing which node are operational or have an error:  Value of 0: not health. Value of 1: enabled. (type:uint16_t)
+                beacon_node_status        : Bitmask showing which nodes' status, double bits indicate one node status (type:uint32_t)
 
                 '''
-                return self.send(self.beacon_status_encode(type, beacon_sensors_present, beacon_sensors_enabled, beacon_sensors_health, beacon_node_present, beacon_node_enabled, beacon_node_health), force_mavlink1=force_mavlink1)
+                return self.send(self.beacon_status_encode(type, beacon_sensors_present, beacon_sensors_enabled, beacon_sensors_status, beacon_node_present, beacon_node_enabled, beacon_node_status), force_mavlink1=force_mavlink1)
 
